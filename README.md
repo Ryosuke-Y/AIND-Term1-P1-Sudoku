@@ -7,7 +7,7 @@ Reference source: <http://norvig.com/sudoku.html>
 Q: How do we use constraint propagation to solve the naked twins problem?  
 A: The idea of naked twin technique is following:  
 - Identify 2 boxes in a unit with exactly one pair of common possible numbers
-- Remove any of the number pair from the boxes peers
+- Remove any of the number pair from the boxes peers  
 There are no other alternatives for these two squares or boxes, so if we apply this technique, we could reduce the search time.
 
 # Question 2 (Diagonal Sudoku)
