@@ -2,6 +2,24 @@ assignments = []
 rows = 'ABCDEFGHI'
 cols = '123456789'
 
+def cross(A, B):
+    "Cross product of elements in A and elements in B."
+    return [s+t for s in A for t in B]
+
+boxes = cross(rows, cols)
+
+# create the units
+
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+
+# Add this line for Diagonal Sudoku extensions
+diag_units = [[rows[i] + cols[i] for i in range(9)], [rows[::-1][i] + cols[i] for i in range(9)]]
+unitlist = row_units + column_units + square_units + diag_units
+units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
@@ -29,20 +47,19 @@ def naked_twins(values):
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
 
-def cross(A, B):
-    "Cross product of elements in A and elements in B."
-    return [s+t for s in a for t in b]
+    for unit in unitlist:
+        #In each unit, the boxes that contain only 2 values are recorded into the doubles list
+        doubles = [box for box in unit if len(values[box]) == 2]
+        #Looking through the doubles list, the boxes that contain the exact same values are stored together in the 2d list twins
+        twins = [[doubles[i], doubles[j]] for i in range(len(doubles)) for j in range(i + 1, len(doubles)) if values[doubles[i]] == values[doubles[j]]]
+        for box in unit:
+            #Looking through each box in the current unit, delete the values of the naked twins from all other boxes within the unit
+            for i in range(len(twins)):
+                if box != twins[i][0] and box != twins[i][1]:
+                    for digit in values[twins[i][0]]:
+                        values[box] = values[box].replace(digit,'')
 
-boxes = cross(rows, cols)
-
-# create the units
-
-row_units = [cross(r, cols) for r in rows]
-column_units = [cross(rows, c) for c in cols]
-square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
-units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+    return values
 
 def grid_values(grid):
     """
@@ -100,6 +117,7 @@ def reduce_puzzle(values):
     while not stalled:
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
+        values = naked_twins(values)
         values = only_choice(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
